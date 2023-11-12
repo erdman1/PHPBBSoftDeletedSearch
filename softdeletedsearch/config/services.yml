@@ -1,0 +1,10 @@
+services:
+    erdman.softdeletedsearch.listener:
+        class: erdman\softdeletedsearch\event\listener
+        arguments:
+            - '@auth'
+            - '@template'
+            - '@dbal.conn'
+            - '@request'
+        tags:
+            - { name: event.listener }
