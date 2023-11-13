@@ -8,7 +8,8 @@ if (empty($lang) || !is_array($lang)) {
 }
 
 $lang = array_merge($lang, array(
-    'SEARCH_USER_DELETED_POSTS' => 'Search user’s deleted posts',
+    'SEARCH_USER_DELETED_POSTS' => 'Search',
+    'USER_POSTS_DELETED'=> 'Users Deleted Posts:',
 
 
 )
