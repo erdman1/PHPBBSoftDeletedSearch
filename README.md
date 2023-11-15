@@ -7,6 +7,7 @@ The `erdman\softdeletedsearch` extension for phpBB adds a unique feature allowin
 ## Features
 
 - Adds a new button on a user's profile, visible only to moderators.
+- Shows count of soft-deleted posts on a user's profile.
 - Allows moderators to view all soft-deleted posts of a specific user.
 - Integrates with phpBB's pagination to handle large volumes of posts.
 - Includes JavaScript-based dynamic loading of additional search results.
@@ -41,3 +42,11 @@ For support, questions, or to report issues, please create an issue on github.
 ## License
 
 GNU General Public License v2 
+
+## Discussion
+
+Join the discussion about this extension on [phpBB.com](https://www.phpbb.com/community/viewtopic.php?p=15983314#p15983314).
+
+## Screenshots
+
+![PHPBBSoftDeletedSearch Screenshot](https://www.phpbb.com/community/download/file.php?id=277222&mode=view)
