@@ -100,8 +100,8 @@ class listener implements EventSubscriberInterface
 
     public function modify_search_query_combined($event)
     {
-        $event_json = json_encode((array) $event);
-        echo '<script type="text/javascript">console.log("PHP Event Data:", ' . $event_json . ') </script>';
+        //  $event_json = json_encode((array) $event);
+        // echo '<script type="text/javascript">console.log("PHP Event Data:", ' . $event_json . ') </script>';
 
         $show_deleted = $this->request->variable('show_deleted', 0);
         $sql_where = $event['sql_where'];
