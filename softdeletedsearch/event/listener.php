@@ -127,18 +127,19 @@ class listener implements EventSubscriberInterface
 
             // Add the deleted posts count to the total match count
             //$event['total_match_count'] = 2; //statict adjust
-            $sql = 'SELECT COUNT(post_id) AS deleted_posts_count FROM ' . POSTS_TABLE . '
-                WHERE poster_id = ' . (int) $author_id . ' 
-                AND post_visibility = 2
-                AND forum_id IN (' . $this->db->sql_escape($forum_list) . ')';
-            $result = $this->db->sql_query($sql);
-            $row = $this->db->sql_fetchrow($result);
-            $this->db->sql_freeresult($result);
+//removing because we lose track on pagination 
+            // $sql = 'SELECT COUNT(post_id) AS deleted_posts_count FROM ' . POSTS_TABLE . '
+            //     WHERE poster_id = ' . (int) $author_id . ' 
+            //     AND post_visibility = 2
+            //     AND forum_id IN (' . $this->db->sql_escape($forum_list) . ')';
+            // $result = $this->db->sql_query($sql);
+            // $row = $this->db->sql_fetchrow($result);
+            // $this->db->sql_freeresult($result);
 
-            $deleted_posts_count = (int) $row['deleted_posts_count'];
+            // $deleted_posts_count = (int) $row['deleted_posts_count'];
 
-            // Add the deleted posts count to the total match count
-            $event['total_match_count'] = $deleted_posts_count;
+            // // Add the deleted posts count to the total match count
+            // $event['total_match_count'] = $deleted_posts_count;
 
         }
 

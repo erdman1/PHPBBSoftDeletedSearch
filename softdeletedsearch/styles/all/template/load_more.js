@@ -61,6 +61,7 @@ function loadNextPage(page) {
                 $('.panel').html(content);
             }
             totalRows += $('.postprofile', data).length;
+            updateSearchResultsTitle(totalRows);
             loadPage(page + 1); // Increment the page here for the next call
         }
     });
@@ -85,6 +86,15 @@ function createLoadMoreButton() {
     loadMoreBtn.insertAfter('.searchresults-title');
 
 }
+function updateSearchResultsTitle(totalRows) {
+    var resultsTitle = $('.searchresults-title');
+    if (resultsTitle.length > 0) {
+        var text = resultsTitle.text();
+        var updatedText = text.replace(/\d+/, totalRows.toLocaleString('en-US'));
+        resultsTitle.text(updatedText);
+    }
+}
+
 
 loadPage(on_page);
 
