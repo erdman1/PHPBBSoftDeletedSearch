@@ -10,16 +10,19 @@ class listener implements EventSubscriberInterface
     protected $template;
     protected $db;
     protected $request;
+    protected $config;
+
     protected $deleted_posts_count = null;
 
     protected $member_id;
 
-    public function __construct(\phpbb\auth\auth $auth, \phpbb\template\template $template, \phpbb\db\driver\factory $db, \phpbb\request\request $request)
+    public function __construct(\phpbb\auth\auth $auth, \phpbb\template\template $template, \phpbb\db\driver\factory $db, \phpbb\request\request $request, \phpbb\config\config $config)
     {
         $this->auth = $auth;
         $this->template = $template;
         $this->db = $db;
         $this->request = $request;
+        $this->config = $config;
     }
 
 
@@ -28,8 +31,8 @@ class listener implements EventSubscriberInterface
         return array(
             'core.user_setup' => 'load_language_on_setup',
             'core.memberlist_view_profile' => 'add_profile_link',
-            'core.search_modify_url_parameters' => 'modify_search_query_combined',
             'core.pagination_generate_page_link' => 'on_pagination_generate_page_link',
+            'core.search_get_posts_data' => 'modify_search_query_per_page',
 
 
         );
@@ -72,6 +75,68 @@ class listener implements EventSubscriberInterface
         $this->deleted_posts_count = (int) $row['deleted_posts_count'];
     }
 
+    public function modify_search_query_per_page($event)
+    {
+        $show_deleted = $this->request->variable('show_deleted', 0);
+
+    
+        if ($show_deleted) {
+            $author_id = $this->request->variable('author_id', 0);
+            $sql_ary = $event['sql_array'];
+            $sql_array = $event['sql_array'];
+            $start = $event['start'];
+            $id_ary = array();
+            
+            $allowed_forums = $this->get_allowed_forums();
+            if (empty($allowed_forums)) {
+                return; // If user has no m_softdelete permissions in any forum, exit early
+            }
+            
+            
+            $forum_list = implode(',', $allowed_forums);
+
+    
+            $sql_where =  "p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
+            $sql_array['WHERE'] = $sql_where;
+
+            $sql_found_rows = $this->db->sql_build_query('SELECT', $sql_array);
+            $field = 'post_id';
+
+			$result = $this->db->sql_query($sql_found_rows);
+			$result_count = count($this->db->sql_fetchrowset($result));
+            $this->db->sql_freeresult($result);
+            $per_page = floor(($result_count - 1) / $this->config['posts_per_page']) * $this->config['posts_per_page'];
+
+            if ($start >= $result_count)
+            {
+                $start = floor(($result_count - 1) / $per_page) * $per_page;
+            }
+
+            $result = $this->db->sql_query_limit($sql_found_rows, $this->config['search_block_size'], $start);
+			while ($row = $this->db->sql_fetchrow($result))
+			{
+				$id_ary[] = (int) $row[$field];
+			}
+			$this->db->sql_freeresult($result);
+
+			$id_ary = array_unique($id_ary);
+            $id_ary = array_slice($id_ary, 0, 25);   
+
+            $sql_where = $this->db->sql_in_set('p.post_id', $id_ary);
+            $sql_where .=  " AND p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
+
+			if ($result_count)
+			{
+				$event['total_match_count'] = $result_count;
+			}
+            else
+            {
+                $event['total_match_count'] = 0;
+            }
+            $sql_ary['WHERE'] = $sql_where;
+            $event['sql_array'] = $sql_ary;
+        }
+    }
 
     public function add_profile_link($event)
     {
@@ -96,53 +161,6 @@ class listener implements EventSubscriberInterface
             }
         }
         return $allowed_forums;
-    }
-
-    public function modify_search_query_combined($event)
-    {
-        //  $event_json = json_encode((array) $event);
-        // echo '<script type="text/javascript">console.log("PHP Event Data:", ' . $event_json . ') </script>';
-
-        $show_deleted = $this->request->variable('show_deleted', 0);
-        $sql_where = $event['sql_where'];
-
-        if ($show_deleted) {
-            $author_id = $this->request->variable('author_id', 0);
-            $member_id = $author_id;
-            $allowed_forums = $this->get_allowed_forums();
-            if (empty($allowed_forums)) {
-                return; // If user has no m_softdelete permissions in any forum, exit early
-            }
-
-            $forum_list = implode(',', $allowed_forums);
-
-            // Modify the SQL WHERE clause
-            if ($author_id) {
-                // If an author_id is provided, show only that user's soft deleted posts in allowed forums
-                $sql_where .= ($sql_where ? ' AND ' : '') . "p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
-            }
-
-            $event['sql_where'] = $sql_where;
-            $this->template->assign_var('S_SHOW_DELETED', 1); //we need this for overall_footer_after.html to know when to load the js
-
-            // Add the deleted posts count to the total match count
-            //$event['total_match_count'] = 2; //statict adjust
-//removing because we lose track on pagination 
-            // $sql = 'SELECT COUNT(post_id) AS deleted_posts_count FROM ' . POSTS_TABLE . '
-            //     WHERE poster_id = ' . (int) $author_id . ' 
-            //     AND post_visibility = 2
-            //     AND forum_id IN (' . $this->db->sql_escape($forum_list) . ')';
-            // $result = $this->db->sql_query($sql);
-            // $row = $this->db->sql_fetchrow($result);
-            // $this->db->sql_freeresult($result);
-
-            // $deleted_posts_count = (int) $row['deleted_posts_count'];
-
-            // // Add the deleted posts count to the total match count
-            // $event['total_match_count'] = $deleted_posts_count;
-
-        }
-
     }
 
     public function on_pagination_generate_page_link($event)
