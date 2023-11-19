@@ -79,58 +79,53 @@ class listener implements EventSubscriberInterface
     {
         $show_deleted = $this->request->variable('show_deleted', 0);
 
-    
+
         if ($show_deleted) {
             $author_id = $this->request->variable('author_id', 0);
             $sql_ary = $event['sql_array'];
             $sql_array = $event['sql_array'];
             $start = $event['start'];
             $id_ary = array();
-            
+
             $allowed_forums = $this->get_allowed_forums();
             if (empty($allowed_forums)) {
                 return; // If user has no m_softdelete permissions in any forum, exit early
             }
-            
-            
+
+
             $forum_list = implode(',', $allowed_forums);
 
-    
-            $sql_where =  "p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
+
+            $sql_where = "p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
             $sql_array['WHERE'] = $sql_where;
 
             $sql_found_rows = $this->db->sql_build_query('SELECT', $sql_array);
             $field = 'post_id';
 
-			$result = $this->db->sql_query($sql_found_rows);
-			$result_count = count($this->db->sql_fetchrowset($result));
+            $result = $this->db->sql_query($sql_found_rows);
+            $result_count = count($this->db->sql_fetchrowset($result));
             $this->db->sql_freeresult($result);
             $per_page = floor(($result_count - 1) / $this->config['posts_per_page']) * $this->config['posts_per_page'];
 
-            if ($start >= $result_count)
-            {
+            if ($start >= $result_count) {
                 $start = floor(($result_count - 1) / $per_page) * $per_page;
             }
 
             $result = $this->db->sql_query_limit($sql_found_rows, $this->config['search_block_size'], $start);
-			while ($row = $this->db->sql_fetchrow($result))
-			{
-				$id_ary[] = (int) $row[$field];
-			}
-			$this->db->sql_freeresult($result);
+            while ($row = $this->db->sql_fetchrow($result)) {
+                $id_ary[] = (int) $row[$field];
+            }
+            $this->db->sql_freeresult($result);
 
-			$id_ary = array_unique($id_ary);
-            $id_ary = array_slice($id_ary, 0, 25);   
+            $id_ary = array_unique($id_ary);
+            $id_ary = array_slice($id_ary, 0, 25);
 
-            $sql_where = $this->db->sql_in_set('p.post_id', $id_ary);
-            $sql_where .=  " AND p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
+            $sql_where = ($result_count ?  $this->db->sql_in_set('p.post_id', $id_ary) : '');
+            $sql_where .=  ($result_count ? ' AND ' : '')."p.poster_id = $author_id AND p.post_visibility = 2 AND p.forum_id IN ($forum_list)";
 
-			if ($result_count)
-			{
-				$event['total_match_count'] = $result_count;
-			}
-            else
-            {
+            if ($result_count) {
+                $event['total_match_count'] = $result_count;
+            } else {
                 $event['total_match_count'] = 0;
             }
             $sql_ary['WHERE'] = $sql_where;
