@@ -3,7 +3,7 @@
     "type": "phpbb-extension",
     "description": "Adds an option for moderators to search only deleted posts",
     "homepage": "https://github.com/erdman1/PHPBBSoftDeletedSearch",
-    "version": "0.0.5",
+    "version": "1.0.0",
     "license": "GPL-2.0",
     "authors": [{
         "name": "Erd Man",
@@ -17,7 +17,7 @@
     "extra": {
         "display-name": "Soft Deleted Search",
         "soft-require": {
-            "phpbb/phpbb": ">=3.3,<4.0@dev"
+            "phpbb/phpbb": ">=3.3"
         }
     }
 }
