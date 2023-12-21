@@ -4,7 +4,7 @@
     "description": "Adds an option for moderators to search only deleted posts",
     "homepage": "https://github.com/erdman1/PHPBBSoftDeletedSearch",
     "version": "1.0.0",
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-only",
     "authors": [{
         "name": "Erd Man",
         "email": "erdman@fastmail.net",
